@@ -3,11 +3,13 @@ package com.practice.security.config;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +22,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+@Order(1)
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -75,20 +78,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.headers()
-                .httpStrictTransportSecurity()
-                    .includeSubDomains(true)
-                    .preload(true)
-                    .and()
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                    .headers()
+                    .httpStrictTransportSecurity()
+                        .includeSubDomains(true)
+                        .preload(true)
+                        .and()
                 .and()
                     .requiresChannel()
-                    .anyRequest().requiresSecure();
-
-        http.httpBasic();
-
-        http
-           .authorizeRequests()
-           .mvcMatchers("/hello").authenticated()
-           .anyRequest().permitAll();
+                    .anyRequest().requiresSecure()
+                .and()
+                    .httpBasic()
+                .and()
+                   .authorizeRequests()
+                   .mvcMatchers("/hello").authenticated();
     }
 }
